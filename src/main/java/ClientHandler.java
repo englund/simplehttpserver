@@ -1,9 +1,7 @@
 import java.io.*;
 import java.net.Socket;
-import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
