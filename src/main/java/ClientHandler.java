@@ -1,16 +1,15 @@
 import java.io.*;
 import java.net.Socket;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ClientHandler implements Runnable {
-    private ClassLoader classLoader;
+    private final String basePath;
     private final Socket socket;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket, String basePath) {
         this.socket = socket;
-        this.classLoader = getClass().getClassLoader();
+        this.basePath = basePath;
     }
 
     public void handleRequest() {
@@ -21,9 +20,8 @@ public class ClientHandler implements Runnable {
             inputStream = socket.getInputStream();
             Request request = getRequest(inputStream);
 
-            URL url = classLoader.getResource(String.format("files%s", request.getPath()));
-            if (url != null) {
-                File file = new File(url.getFile());
+            File file = new File(basePath, request.getPath());
+            if (file.exists()) {
                 String httpResponse = "HTTP/1.1 200 OK\r\n\r\n";
                 outputStream.write(httpResponse.getBytes());
                 FileInputStream fileInputStream = new FileInputStream(file);

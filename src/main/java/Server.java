@@ -8,11 +8,13 @@ public class Server implements Runnable {
     private final Thread serverThread = new Thread(this);
     private final ExecutorService executor;
     private final int port;
+    private final String basePath;
     private final ServerSocket server;
     private boolean serverRunning;
 
-    public Server(int port) throws IOException {
+    public Server(int port, String basePath) throws IOException {
         this.port = port;
+        this.basePath = basePath;
         this.executor = Executors.newFixedThreadPool(10);
         this.server = new ServerSocket(this.port);
     }
@@ -29,7 +31,7 @@ public class Server implements Runnable {
         while (serverRunning){
             try {
                 Socket socket = server.accept();
-                ClientHandler clientHandler = new ClientHandler(socket);
+                ClientHandler clientHandler = new ClientHandler(socket, this.basePath);
                 executor.submit(clientHandler);
             } catch (IOException e) {
                 e.printStackTrace();
