@@ -1,7 +1,5 @@
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ClientHandler implements Runnable {
     private final String basePath;
@@ -18,14 +16,13 @@ public class ClientHandler implements Runnable {
         try {
             outputStream = socket.getOutputStream();
             inputStream = socket.getInputStream();
-            Request request = getRequest(inputStream);
 
-            File file = new File(basePath, request.getPath());
+            File file = new File(basePath, getPath(inputStream));
             if (file.exists()) {
                 String httpResponse = "HTTP/1.1 200 OK\r\n\r\n";
                 outputStream.write(httpResponse.getBytes());
                 FileInputStream fileInputStream = new FileInputStream(file);
-                fileInputStream.transferTo(socket.getOutputStream());
+                fileInputStream.transferTo(outputStream);
             } else {
                 outputStream.write(("HTTP/1.1 404 Not Found \r\n\r\n").getBytes());
             }
@@ -50,29 +47,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private Request getRequest(InputStream inputStream) throws IOException {
+    private String getPath(InputStream inputStream) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
-
-        StringBuilder requestBuilder = new StringBuilder();
-        String line;
-        while (!(line = br.readLine()).isBlank()) {
-            requestBuilder.append(line + "\r\n");
-        }
-
-        String request = requestBuilder.toString();
-        String[] requestsLines = request.split("\r\n");
-        String[] requestLine = requestsLines[0].split(" ");
-        String method = requestLine[0];
-        String path = requestLine[1];
-        String version = requestLine[2];
-        String host = requestsLines[1].split(" ")[1];
-
-        List<String> headers = new ArrayList<>();
-        for (int h = 2; h < requestsLines.length; h++) {
-            String header = requestsLines[h];
-            headers.add(header);
-        }
-        return new Request(method, path, version, host, headers);
+        String firstLine = br.readLine();
+        String path = firstLine.split(" ")[1];
+        return path;
     }
 
     @Override
